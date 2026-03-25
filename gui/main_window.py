@@ -273,6 +273,24 @@ class MainWindow(QMainWindow):
         else:
             self.dashboard.hide()
 
+    def handle_dashboard_action(self, action):
+        self.append_log(f"Dashboard action requested: {action}")
+        if action == "hide":
+            self.dashboard.hide()
+        elif action == "settings":
+            if not self.settings_dialog:
+                self.settings_dialog = SettingsDialog(self)
+            self.settings_dialog.show()
+        elif action == "diagnostics":
+            if not self.diagnostics_dialog:
+                self.diagnostics_dialog = DiagnosticsDialog(self)
+            self.diagnostics_dialog.set_runtime_data(self.collect_diagnostics_text())
+            self.diagnostics_dialog.show()
+        elif action == "projects":
+            self.append_log("Projects module not yet implemented.")
+        elif action == "social":
+            self.append_log("Social module not yet implemented.")
+
     def collect_diagnostics_text(self):
         plugin_count = len(getattr(self.thread, 'plugin_manager', {}).plugins) if self.thread and hasattr(self.thread, 'plugin_manager') else 'unknown'
         runtime_lines = [

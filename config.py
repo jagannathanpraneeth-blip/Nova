@@ -5,6 +5,9 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 LOGS_DIR = BASE_DIR / "logs"
 ENV_FILE = BASE_DIR / ".env"
+LOG_FILE = LOGS_DIR / "nova.log"
+CONFIG_FILE = DATA_DIR / "config.json"
+
 
 
 def load_dotenv_file():

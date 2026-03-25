@@ -48,5 +48,10 @@ class DiagnosticsDialog(QDialog):
 
         layout.addWidget(title)
         layout.addWidget(subtitle)
-        layout.addWidget(body)
+        self.body = body
+        layout.addWidget(self.body)
         layout.addWidget(close_btn)
+
+    def set_runtime_data(self, text):
+        if hasattr(self, 'body'):
+            self.body.setPlainText(text)
