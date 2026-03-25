@@ -47,7 +47,7 @@ Copy `.env.example` to `.env` and add only the keys you actually use.
 
 ## Screenshots / Demo Assets
 ### App Screenshot
-![Nova App Screenshot](assets/screenshots/nova-app-fullscreen.png)
+![Nova App Screenshot](assets/screenshots/nova_v2.png)
 
 ### Repo Preview
 ![Nova Repo Preview](assets/demo/repo-preview.png)
