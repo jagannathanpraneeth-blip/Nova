@@ -1,0 +1,38 @@
+{
+    "en": {
+        "listening": "Listening...",
+        "processing": "Processing...",
+        "error": "I encountered an error.",
+        "unknown": "I didn't catch that.",
+        "success": "Done.",
+        "browser_opened": "Opening Google Chrome.",
+        "notepad_opened": "Opening Notepad.",
+        "calculator_opened": "Opening Calculator.",
+        "vscode_opened": "Opening Visual Studio Code.",
+        "explorer_opened": "Opening File Explorer.",
+        "searching": "Searching for {}",
+        "wiki_result": "According to Wikipedia: {}",
+        "weather_report": "The temperature in {} is {} degrees Celsius with {}.",
+        "lang_switched": "Switched to {}",
+        "time_report": "The time is {}",
+        "date_report": "Today is {}"
+    },
+    "hi": {
+        "listening": "सुन रहा हूँ...",
+        "processing": "प्रक्रिया चल रही है...",
+        "error": "कोई त्रुटि हुई।",
+        "unknown": "मैं समझ नहीं पाया।",
+        "success": "हो गया।",
+        "browser_opened": "गूगल क्रोम खोल रहा हूँ।",
+        "notepad_opened": "नोटपैड खोल रहा हूँ।",
+        "calculator_opened": "कैलकुलेटर खोल रहा हूँ।",
+        "vscode_opened": "विजुअल स्टूडियो कोड खोल रहा हूँ।",
+        "explorer_opened": "फाइल एक्सप्लोरर खोल रहा हूँ।",
+        "searching": "{} के लिए खोज रहा हूँ",
+        "wiki_result": "विकिपीडिया के अनुसार: {}",
+        "weather_report": "{} में तापमान {} डिग्री सेल्सियस है और {} है।",
+        "lang_switched": "भाषा {} में बदल दी गई है",
+        "time_report": "समय {} है",
+        "date_report": "आज {} है"
+    }
+}

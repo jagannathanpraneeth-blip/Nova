@@ -1,0 +1,8 @@
+{
+    "openai": "YOUR_OPENAI_API_KEY",
+    "gemini": "YOUR_GEMINI_API_KEY",
+    "weather_api": "",
+    "news_api": "",
+    "whatsapp_token": "",
+    "instagram_token": ""
+}

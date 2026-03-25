@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+logs/*.log
+.venv/
+venv/
+.idea/
+.vscode/
+data/config.json
+setup_api_key.py
+setup_gemini_key.bat
+test_with_api_key.bat

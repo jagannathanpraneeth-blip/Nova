@@ -1,0 +1,73 @@
+{
+    "open_browser": [
+        "open chrome",
+        "start browser",
+        "launch internet",
+        "open google chrome"
+    ],
+    "open_notepad": [
+        "open notepad",
+        "start text editor",
+        "take notes",
+        "create file"
+    ],
+    "open_calculator": [
+        "open calculator",
+        "start calculator",
+        "calc",
+        "calculation"
+    ],
+    "open_vscode": [
+        "open code",
+        "open vs code",
+        "start programming",
+        "visual studio code"
+    ],
+    "open_file_explorer": [
+        "open explorer",
+        "open files",
+        "file manager"
+    ],
+    "get_time": [
+        "what time is it",
+        "current time",
+        "tell me the time",
+        "time please"
+    ],
+    "get_date": [
+        "what is the date",
+        "today's date",
+        "current date",
+        "what day is it"
+    ],
+    "get_weather": [
+        "weather",
+        "temperature",
+        "forecast",
+        "how is the weather"
+    ],
+    "search_google": [
+        "search for",
+        "google",
+        "look up",
+        "find"
+    ],
+    "search_wikipedia": [
+        "wikipedia",
+        "who is",
+        "what is",
+        "tell me about"
+    ],
+    "system_status": [
+        "system status",
+        "how are you",
+        "diagnostics",
+        "cpu usage"
+    ],
+    "change_language": [
+        "switch language",
+        "change language",
+        "hindi",
+        "english"
+    ]
+}

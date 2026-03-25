@@ -1,0 +1,17 @@
+SpeechRecognition
+pyaudio>=0.2.14
+pyttsx3
+spacy
+requests
+wikipedia
+PyQt6
+pyautogui
+newsapi-python
+screen-brightness-control
+psutil
+pycaw
+comtypes
+opencv-python
+Pillow
+openai
+google-generativeai

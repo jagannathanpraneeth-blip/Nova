@@ -1,0 +1,62 @@
+{
+    "intents": [
+        {
+            "tag": "greeting",
+            "patterns": [
+                "hello",
+                "hi",
+                "hey",
+                "wake up",
+                "good morning",
+                "good evening"
+            ],
+            "responses": [
+                "Hello, Sir.",
+                "Online and ready.",
+                "Greetings.",
+                "At your service."
+            ]
+        },
+        {
+            "tag": "goodbye",
+            "patterns": [
+                "bye",
+                "shutdown",
+                "exit",
+                "sleep",
+                "good night",
+                "terminate"
+            ],
+            "responses": [
+                "Goodbye, Sir.",
+                "Shutting down systems.",
+                "Going offline.",
+                "See you later."
+            ]
+        },
+        {
+            "tag": "thanks",
+            "patterns": [
+                "thank you",
+                "thanks",
+                "appreciate it"
+            ],
+            "responses": [
+                "You're welcome.",
+                "My pleasure.",
+                "Anytime, Sir."
+            ]
+        },
+        {
+            "tag": "identity",
+            "patterns": [
+                "who are you",
+                "what is your name"
+            ],
+            "responses": [
+                "I am Nova, your personal AI assistant.",
+                "My name is Nova."
+            ]
+        }
+    ]
+}

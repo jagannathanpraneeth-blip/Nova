@@ -1,0 +1,30 @@
+{
+    "permissions": {
+        "whatsapp": {
+            "send_messages": true,
+            "read_messages": false,
+            "can_post_status": false
+        },
+        "instagram": {
+            "send_dm": true,
+            "post_content": false,
+            "like_posts": false
+        }
+    },
+    "boundaries": {
+        "whatsapp": {
+            "max_messages_per_day": 20,
+            "allowed_hours": {
+                "start": 8,
+                "end": 22
+            }
+        },
+        "instagram": {
+            "max_dms_per_day": 10,
+            "allowed_hours": {
+                "start": 10,
+                "end": 20
+            }
+        }
+    }
+}
