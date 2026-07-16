@@ -9,7 +9,6 @@ LOG_FILE = LOGS_DIR / "nova.log"
 CONFIG_FILE = DATA_DIR / "config.json"
 
 
-
 def load_dotenv_file():
     if not ENV_FILE.exists():
         return
@@ -30,6 +29,13 @@ WAKE_WORD = os.getenv("WAKE_WORD", "nova")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY", "")
+
+# --- Multi-Agent Settings ---
+AUTONOMOUS_MODE = os.getenv("AUTONOMOUS_MODE", "True").lower() == "true"
+AUTONOMY_LEVEL = os.getenv("AUTONOMY_LEVEL", "moderate")  # conservative, moderate, full
+MAX_DYNAMIC_AGENTS = int(os.getenv("MAX_DYNAMIC_AGENTS", "10"))
+MEMORY_PERSISTENCE = os.getenv("MEMORY_PERSISTENCE", "True").lower() == "true"
+MONITOR_INTERVAL_SECONDS = int(os.getenv("MONITOR_INTERVAL_SECONDS", "30"))
 
 for directory in (DATA_DIR, LOGS_DIR):
     directory.mkdir(exist_ok=True)

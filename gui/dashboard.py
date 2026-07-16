@@ -52,28 +52,26 @@ class MiniDashboard(QWidget):
         root.setContentsMargins(20, 20, 20, 20)
         root.setSpacing(14)
 
-        title = QLabel("Nova Command Center")
+        title = QLabel("Nova Swarm Command Center")
         title.setObjectName("DashboardTitle")
-        subtitle = QLabel("Quick actions, runtime snapshot, and future assistant controls.")
+        subtitle = QLabel("Overview of the autonomous agent swarm, core diagnostics, and settings.")
         subtitle.setObjectName("DashboardSubTitle")
         root.addWidget(title)
         root.addWidget(subtitle)
 
         stats_row = QHBoxLayout()
         stats_row.setSpacing(12)
-        self.plugins_card = StatCard("Plugins", "Loaded")
-        self.voice_card = StatCard("Voice", "Ready")
-        self.ai_card = StatCard("LLM", "Online")
-        stats_row.addWidget(self.plugins_card)
+        self.agents_card = StatCard("Swarm Agents", "8 Active")
+        self.voice_card = StatCard("Voice Recognition", "Ready")
+        self.ai_card = StatCard("LLM Engine", "Online")
+        stats_row.addWidget(self.agents_card)
         stats_row.addWidget(self.voice_card)
         stats_row.addWidget(self.ai_card)
         root.addLayout(stats_row)
 
         for label, action in [
-            ("Open Projects", "projects"),
-            ("Open Social Tools", "social"),
-            ("Open Settings", "settings"),
-            ("Open Diagnostics", "diagnostics"),
+            ("Swarm Diagnostics", "diagnostics"),
+            ("Configure Settings", "settings"),
             ("Hide Dashboard", "hide")
         ]:
             btn = QPushButton(label)
@@ -82,7 +80,7 @@ class MiniDashboard(QWidget):
 
         root.addStretch()
 
-    def update_runtime_state(self, voice: str = "Ready", llm: str = "Online", plugins: str = "Loaded"):
+    def update_runtime_state(self, voice: str = "Ready", llm: str = "Online", agents: str = "8 Active"):
         self.voice_card.update_value(voice)
         self.ai_card.update_value(llm)
-        self.plugins_card.update_value(plugins)
+        self.agents_card.update_value(agents)

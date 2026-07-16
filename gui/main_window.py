@@ -1,8 +1,10 @@
 import sys
 import threading
 import time
+import os
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QLabel, QTextEdit, QPushButton, QHBoxLayout)
+                             QLabel, QTextEdit, QPushButton, QHBoxLayout,
+                             QTableWidget, QTableWidgetItem, QHeaderView)
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread, QPoint
 from PyQt6.QtGui import QPainter, QColor, QBrush, QPen, QRadialGradient
 
@@ -12,18 +14,20 @@ from modules.nlp_engine import NLPEngine
 from modules.command_executor import CommandExecutor
 from modules.tts_engine import TTSEngine
 from modules.utils import load_json, DATA_DIR
-from modules.ai_brain import AIBrain
+from modules.agents.orchestrator import Orchestrator
+from modules.agents.autonomous_loop import AutonomousLoop
 from gui.dashboard import MiniDashboard
 from gui.settings_dialog import SettingsDialog
 from gui.diagnostics_dialog import DiagnosticsDialog
-from config import APP_NAME, WAKE_WORD
-import os
+from config import APP_NAME, WAKE_WORD, AUTONOMOUS_MODE
+
 
 class AssistantThread(QThread):
     update_status = pyqtSignal(str)
     update_transcript = pyqtSignal(str)
     update_log = pyqtSignal(str)
     request_dashboard = pyqtSignal(bool)
+    agents_updated = pyqtSignal(list)
     
     def __init__(self):
         super().__init__()
@@ -32,25 +36,38 @@ class AssistantThread(QThread):
         self.speech = SpeechEngine()
         self.nlp = NLPEngine()
         self.executor = CommandExecutor(self.tts)
-        self.ai_brain = AIBrain(self.tts, self.speech)  # NEW: Universal AI Brain with speech engine
+        
+        # Initialize Multi-Agent Orchestrator
+        self.orchestrator = Orchestrator(self.tts, self.speech)
         self.intents_data = load_json(os.path.join(DATA_DIR, 'intents.json'))
+        
+        # Background Autonomous supervisor loop
+        self.auto_loop = None
+        if AUTONOMOUS_MODE:
+            self.auto_loop = AutonomousLoop(self.tts, self.orchestrator)
+            self.auto_loop.start()
 
     def run(self):
         self.update_log.emit(f"{APP_NAME} initialized.")
+        self.update_log.emit("Autonomous Agent Registry online.")
         self.update_log.emit(f"Listening for wake word: '{WAKE_WORD}'.")
-        self.tts.speak(f"Hello. I am {APP_NAME}. Systems are online and ready.")
+        self.tts.speak(f"Hello. I am {APP_NAME}. Multiagent systems are online and running autonomously.")
 
         wake_word_primary = WAKE_WORD.lower()
         legacy_wake_word = "jarvis"
 
         while self.running:
             self.update_status.emit("Listening")
+            
+            # Emit agent statuses to update GUI list
+            self.agents_updated.emit(self.orchestrator.get_agent_status())
+            
             text = self.speech.listen()
             
             if text:
                 text_lower = text.lower()
                 if wake_word_primary in text_lower or legacy_wake_word in text_lower:
-                    self.update_log.emit("🎤 Wake word detected")
+                    self.update_log.emit("🎤 Wake word heard")
                     self.tts.speak("Yes?")
                     
                     command = text_lower.replace(wake_word_primary, "").replace(legacy_wake_word, "").strip()
@@ -62,28 +79,27 @@ class AssistantThread(QThread):
                         
                         # Check for simple conversational intents first
                         intent, confidence = self.nlp.classify_intent(command)
-                        self.update_log.emit(f"Intent: {intent} ({confidence:.2f})")
+                        self.update_log.emit(f"Intent Classify: {intent} ({confidence:.2f})")
                         
-                        # PRIORITY CHANGE: Try AI Brain FIRST for everything
-                        # This ensures commands like "type this" aren't mistaken for "identity"
-                        self.update_log.emit("AI Brain processing command...")
-                        result = self.ai_brain.parse_and_execute(command)
+                        # Orchestrator handles multi-agent task execution
+                        self.update_log.emit("Orchestrator decomposing task...")
+                        result = self.orchestrator.process(command)
+                        
+                        # Emit agent updates after work
+                        self.agents_updated.emit(self.orchestrator.get_agent_status())
                         
                         if result['success'] and result['action'] != 'none':
-                            # AI Brain handled it successfully
                             self.update_log.emit(f"✓ {result['action']}: {result['message']}")
                             if result['message']:
                                 self.update_transcript.emit(f"Nova: {result['message']}")
                                 
-                            # Handle GUI-specific actions
                             if result['action'] == 'open_dashboard':
                                 self.request_dashboard.emit(True)
                             elif result['action'] == 'close_dashboard':
                                 self.request_dashboard.emit(False)
                         else:
-                            # AI Brain didn't handle it, try conversational intents
+                            # Conversational fallbacks
                             response_found = False
-                            
                             if intent in ["greeting", "goodbye", "thanks", "identity"]:
                                 for i in self.intents_data['intents']:
                                     if i['tag'] == intent:
@@ -109,23 +125,24 @@ class AssistantThread(QThread):
                                     self.update_log.emit(f"✗ {result['action']}: {result['message']}")
                     else:
                         self.update_log.emit("Wake word heard. Waiting for command...")
-                else:
-                    # Intentionally silent on non-wake chatter to reduce log spam
-                    pass
             
             time.sleep(0.5)
 
     def stop(self):
         self.running = False
+        if self.auto_loop:
+            self.auto_loop.stop()
+        self.orchestrator.shutdown()
+
 
 class PulsingWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumSize(250, 250)
+        self.setMinimumSize(220, 220)
         self.radius = 60
         self.ring_rotation = 0
         self.growing = True
-        self.base_color = QColor(0, 255, 255) # Cyan
+        self.base_color = QColor(0, 255, 255)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.animate)
         self.timer.start(30)
@@ -150,7 +167,7 @@ class PulsingWidget(QWidget):
         center_x = self.width() / 2
         center_y = self.height() / 2
         
-        # 1. Outer Glow
+        # Glow
         gradient = QRadialGradient(center_x, center_y, 100)
         gradient.setColorAt(0, QColor(0, 255, 255, 100))
         gradient.setColorAt(1, QColor(0, 255, 255, 0))
@@ -158,7 +175,7 @@ class PulsingWidget(QWidget):
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(QPoint(int(center_x), int(center_y)), 100, 100)
 
-        # 2. Tech Ring (Rotating)
+        # Tech Ring
         painter.save()
         painter.translate(center_x, center_y)
         painter.rotate(self.ring_rotation)
@@ -167,18 +184,16 @@ class PulsingWidget(QWidget):
         painter.setPen(pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
         
-        # Draw segmented ring
         for i in range(0, 360, 45):
              painter.drawArc(-80, -80, 160, 160, i * 16, 30 * 16)
-             
         painter.restore()
         
-        # 3. Inner Core (Pulsing)
+        # Inner Core
         painter.setBrush(QBrush(QColor(255, 255, 255, 200)))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(QPoint(int(center_x), int(center_y)), int(self.radius), int(self.radius))
         
-        # 4. Center Dot
+        # Core center
         painter.setBrush(QBrush(QColor(0, 255, 255)))
         painter.drawEllipse(QPoint(int(center_x), int(center_y)), 20, 20)
 
@@ -186,14 +201,16 @@ class PulsingWidget(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"{APP_NAME} — Desktop AI Assistant")
-
-        self.setGeometry(100, 100, 900, 680)
+        self.setWindowTitle(f"{APP_NAME} — Advanced Autonomous Multiagent System")
+        self.setGeometry(100, 100, 1100, 720)
         self.setStyleSheet(DARK_THEME)
         
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
+        
+        # Main split layout (Left = controls/log, Right = agent registry swarm)
+        main_layout = QHBoxLayout(central_widget)
+        left_panel = QVBoxLayout()
         
         header_layout = QHBoxLayout()
         self.status_label = QLabel("Initializing...")
@@ -209,21 +226,53 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(self.start_button)
         header_layout.addWidget(self.stop_button)
         header_layout.addWidget(self.clear_button)
-        layout.addLayout(header_layout)
+        left_panel.addLayout(header_layout)
         
         self.pulsing_widget = PulsingWidget()
-        layout.addWidget(self.pulsing_widget, alignment=Qt.AlignmentFlag.AlignCenter)
+        left_panel.addWidget(self.pulsing_widget, alignment=Qt.AlignmentFlag.AlignCenter)
         
         self.transcript_label = QLabel(f"Say '{WAKE_WORD}' to activate...")
         self.transcript_label.setObjectName("TranscriptLabel")
         self.transcript_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.transcript_label)
+        left_panel.addWidget(self.transcript_label)
         
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
-        self.log_output.setMaximumHeight(220)
-        self.log_output.setPlaceholderText(f"{APP_NAME} runtime log...")
-        layout.addWidget(self.log_output)
+        self.log_output.setMaximumHeight(260)
+        self.log_output.setPlaceholderText(f"{APP_NAME} runtime swarm log...")
+        left_panel.addWidget(self.log_output)
+        
+        main_layout.addLayout(left_panel, stretch=2)
+        
+        # Right Panel: Agent Swarm List Widget
+        right_panel = QVBoxLayout()
+        agent_title = QLabel("Agent Swarm Registry")
+        agent_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #8be9fd;")
+        right_panel.addWidget(agent_title)
+        
+        self.agent_table = QTableWidget()
+        self.agent_table.setColumnCount(3)
+        self.agent_table.setHorizontalHeaderLabels(["Agent", "State", "Capabilities"])
+        self.agent_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.agent_table.setStyleSheet("""
+            QTableWidget {
+                background-color: #111125;
+                color: #e8f6ff;
+                border: 1px solid #1c3755;
+                border-radius: 8px;
+                font-family: 'Segoe UI', sans-serif;
+            }
+            QHeaderView::section {
+                background-color: #1a1a36;
+                color: #8be9fd;
+                padding: 6px;
+                font-weight: bold;
+                border: 1px solid #1c3755;
+            }
+        """)
+        right_panel.addWidget(self.agent_table)
+        
+        main_layout.addLayout(right_panel, stretch=1)
         
         self.thread = None
         self.dashboard = MiniDashboard()
@@ -235,24 +284,25 @@ class MainWindow(QMainWindow):
 
     def start_assistant(self):
         if self.thread and self.thread.isRunning():
-            self.append_log("Assistant is already running.")
+            self.append_log("Assistant swarm is already running.")
             return
 
-        self.status_label.setText("Starting...")
+        self.status_label.setText("Starting Swarm...")
         self.thread = AssistantThread()
         self.thread.update_status.connect(self.update_status)
         self.thread.update_transcript.connect(self.update_transcript)
         self.thread.update_log.connect(self.append_log)
         self.thread.request_dashboard.connect(self.toggle_dashboard)
+        self.thread.agents_updated.connect(self.update_agent_table)
         self.thread.finished.connect(lambda: self.status_label.setText("Stopped"))
         self.thread.start()
-        self.append_log(f"{APP_NAME} started.")
+        self.append_log(f"{APP_NAME} multiagent swarm started.")
 
     def stop_assistant(self):
         if self.thread and self.thread.isRunning():
             self.thread.stop()
             self.thread.wait(3000)
-            self.append_log(f"{APP_NAME} stopped.")
+            self.append_log(f"{APP_NAME} multiagent swarm stopped.")
         self.status_label.setText("Stopped")
 
     def update_status(self, text):
@@ -263,9 +313,25 @@ class MainWindow(QMainWindow):
 
     def append_log(self, text):
         self.log_output.append(text)
-        # Scroll to bottom
         sb = self.log_output.verticalScrollBar()
         sb.setValue(sb.maximum())
+
+    def update_agent_table(self, agent_status_list):
+        self.agent_table.setRowCount(len(agent_status_list))
+        for row, agent in enumerate(agent_status_list):
+            # Name
+            self.agent_table.setItem(row, 0, QTableWidgetItem(agent["name"]))
+            # State
+            state_item = QTableWidgetItem(agent["state"])
+            if agent["state"] == "busy":
+                state_item.setForeground(QColor(255, 184, 108)) # Orange
+            elif agent["state"] == "error":
+                state_item.setForeground(QColor(255, 85, 85)) # Red
+            else:
+                state_item.setForeground(QColor(80, 250, 123)) # Green
+            self.agent_table.setItem(row, 1, state_item)
+            # Capabilities
+            self.agent_table.setItem(row, 2, QTableWidgetItem(", ".join(agent["capabilities"])))
         
     def toggle_dashboard(self, show):
         if show:
@@ -287,18 +353,18 @@ class MainWindow(QMainWindow):
             self.diagnostics_dialog.set_runtime_data(self.collect_diagnostics_text())
             self.diagnostics_dialog.show()
         elif action == "projects":
-            self.append_log("Projects module not yet implemented.")
+            self.append_log("Invoking CodingAgent for project panel management.")
         elif action == "social":
-            self.append_log("Social module not yet implemented.")
+            self.append_log("Invoking CommunicationAgent for social dashboard.")
 
     def collect_diagnostics_text(self):
-        plugin_count = len(getattr(self.thread, 'plugin_manager', {}).plugins) if self.thread and hasattr(self.thread, 'plugin_manager') else 'unknown'
+        agent_count = self.thread.orchestrator.get_agent_count() if self.thread else 'unknown'
         runtime_lines = [
             f'App Name: {APP_NAME}',
             f'Wake Word: {WAKE_WORD}',
-            f'Assistant Running: {bool(self.thread and self.thread.isRunning())}',
+            f'Autonomous Loop Enabled: {AUTONOMOUS_MODE}',
+            f'Agent Count: {agent_count}',
             f'Dashboard Visible: {self.dashboard.isVisible()}',
-            f'Plugin Count: {plugin_count}',
             f'Current Status Label: {self.status_label.text()}',
         ]
         return '\n'.join(map(str, runtime_lines))
